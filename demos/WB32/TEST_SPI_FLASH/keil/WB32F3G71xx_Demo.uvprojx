@@ -1252,16 +1252,6 @@
               <FilePath>..\source\timer.h</FilePath>
             </File>
             <File>
-              <FileName>eeprom_flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\source\eeprom_flash.c</FilePath>
-            </File>
-            <File>
-              <FileName>eeprom_flash.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\source\eeprom_flash.h</FilePath>
-            </File>
-            <File>
               <FileName>flash_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\source\flash_spi.c</FilePath>

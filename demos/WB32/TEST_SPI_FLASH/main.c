@@ -22,7 +22,6 @@
 #include "stdio.h"
 #include "flash_spi.h"
 #include "spi_master.h"
-#include "eeprom_flash.h"
 /*===========================================================================*/
 /* Private variables.                                                        */
 /*===========================================================================*/
@@ -63,12 +62,16 @@ int main(void)
 
 //  SPI_FLASH_Erase();
   
-  SPI_FLASH_ReadBlock((uint8_t *)&watch_buffer ,SPI_FLASH_START_ADDR, 1024);
-  eeprom_driver_init();
-  eeprom_write_block((const uint8_t *)spi_master_tx_data, (void *)0, sizeof(spi_master_tx_data));
-  eeprom_read_block((uint8_t *)spi_master_rx_buf, (void *)0, sizeof(spi_master_tx_data));
-
-  SPI_FLASH_ReadBlock((uint8_t *)&watch_buffer ,(void *)SPI_FLASH_START_ADDR, 1024);
+  flash_read_block((uint8_t *)watch_buffer, (void *)0, 1024);
+  
+  flash_erase_block((void *)0);
+//  flash_erase_chip();
+  
+  flash_read_block((uint8_t *)watch_buffer, (void *)0, 1024);
+  
+  flash_write_block((uint8_t *)spi_master_tx_data, (void *)0, sizeof(spi_master_tx_data));
+  
+  flash_read_block((uint8_t *)watch_buffer, (void *)0, 1024);
 
   /*
    * Normal main() thread activity.

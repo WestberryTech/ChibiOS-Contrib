@@ -17,36 +17,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stdint.h>
-#include <stddef.h>
-
-//-------------------------------------SPI configuration-------------------------------------/
+/* All the following default configurations are based on MX25L4006E Nor FLASH. */
 
 /*
     The slave select pin of the FLASH.
     This needs to be a normal GPIO pin_t value, such as B14.
 */
-#ifndef SPI_FLASH_SLAVE_SELECT_PIN
-#    define SPI_FLASH_SLAVE_SELECT_PIN PAL_LINE(GPIOB, 14)
-#endif
-
-/*
-    Whether or not the SPI communication between the MCU and FLASH should be
-    LSB-first.
-*/
-#ifndef SPI_FLASH_LSBFIRST
-#    define SPI_FLASH_LSBFIRST false
-#endif
-
-/*
-    The SPI mode to communicate with the FLASH.
-*/
-#ifndef SPI_FLASH_MODE
-#    define SPI_FLASH_MODE 0
+#define EXTERNAL_FLASH_SPI_SLAVE_SELECT_PIN PAL_LINE(GPIOB, 14)
+#ifndef EXTERNAL_FLASH_SPI_SLAVE_SELECT_PIN
+#    error "No chip select pin defined -- missing EXTERNAL_FLASH_SPI_SLAVE_SELECT_PIN"
 #endif
 
 /*
@@ -54,93 +33,102 @@ extern "C" {
     specifications of the FLASH chip. Generally this will be PCLK divided by
     the intended divisor -- check your clock settings and the datasheet of
     your FLASH.
-    SPI speed = WB32_MAINCLK / (SPI_FLASH_CLOCK_DIVISOR << 2)
-    The default value for WB32_MAINCLK is 72MHz.
 */
-#ifndef SPI_FLASH_CLOCK_DIVISOR
-#    define SPI_FLASH_CLOCK_DIVISOR 18
+#ifndef EXTERNAL_FLASH_SPI_CLOCK_DIVISOR
+#    ifdef __AVR__
+#        define EXTERNAL_FLASH_SPI_CLOCK_DIVISOR 8
+#    else
+#        define EXTERNAL_FLASH_SPI_CLOCK_DIVISOR 18
+#    endif
 #endif
 
 /*
-    The time-out time of flash transmission.
+    The SPI mode to communicate with the FLASH.
 */
-#ifndef SPI_FLASH_TIMEOUT
-#    define SPI_FLASH_TIMEOUT 1000
+#ifndef EXTERNAL_FLASH_SPI_MODE
+#    define EXTERNAL_FLASH_SPI_MODE 0
 #endif
 
-//-----------------------------------SPI flash configuration-----------------------------------/
+/*
+    Whether or not the SPI communication between the MCU and FLASH should be
+    LSB-first.
+*/
+#ifndef EXTERNAL_FLASH_SPI_LSBFIRST
+#    define EXTERNAL_FLASH_SPI_LSBFIRST false
+#endif
 
 /*
     Flash address size, as specified in datasheet, in bytes.
 */
-#ifndef SPI_FLASH_ADDRESS_SIZE
-#    define SPI_FLASH_ADDRESS_SIZE 3
+#ifndef EXTERNAL_FLASH_ADDRESS_SIZE
+#    define EXTERNAL_FLASH_ADDRESS_SIZE 3
 #endif
 
 /*
     The page size in bytes of the FLASH, as specified in the datasheet.
 */
-#ifndef SPI_FLASH_PAGE_SIZE
-#    define SPI_FLASH_PAGE_SIZE 256
+#ifndef EXTERNAL_FLASH_PAGE_SIZE
+#    define EXTERNAL_FLASH_PAGE_SIZE 256
 #endif
 
 /*
-    The Page count is used to indicate how many pages are used in FLASH.
+    The sector size in Kbytes of the FLASH, as specified in the datasheet.
 */
-#ifndef SPI_FLASH_PAGE_COUNT
-#    define SPI_FLASH_PAGE_COUNT 8
+#ifndef EXTERNAL_FLASH_SECTOR_SIZE
+#    define EXTERNAL_FLASH_SECTOR_SIZE 4
 #endif
 
 /*
-    The sector size in bytes of the FLASH, as specified in the datasheet.
+    The block size in Kbytes of the FLASH, as specified in the datasheet.
 */
-#ifndef SPI_FLASH_SECTOR_SIZE
-#    define SPI_FLASH_SECTOR_SIZE 4096UL
+#ifndef EXTERNAL_FLASH_BLOCK_SIZE
+#    define EXTERNAL_FLASH_BLOCK_SIZE 64
 #endif
 
 /*
-    The sector count of the FLASH, the number of Address of the starting sector.
-*/
-#ifndef SPI_FLASH_SECTOR_START_COUNT
-#    define SPI_FLASH_SECTOR_START_COUNT 0
-#endif
-
-/*
-    The sector count of the FLASH, the number of sectors that need to be used.
-*/
-#ifndef SPI_FLASH_SECTOR_COUNT
-#    define SPI_FLASH_SECTOR_COUNT 1
-#endif
-
-/*
-    The FLASH size is used to indicate the size of this flash in KB.
-*/
-#ifndef SPI_FLASH_SIZE
-#    define SPI_FLASH_SIZE 8 // KB
-#endif
-
-/*
-    The total size of the FLASH, in bytes. The FLASH datasheet will usually
+    The total size of the FLASH, in Kbytes. The FLASH datasheet will usually
     specify this value in kbits, and will require conversion to bytes.
 */
-#ifndef SPI_FLASH_BYTE_COUNT
-#    define SPI_FLASH_BYTE_COUNT (SPI_FLASH_SECTOR_COUNT * SPI_FLASH_SECTOR_SIZE)
+#ifndef EXTERNAL_FLASH_SIZE
+#    define EXTERNAL_FLASH_SIZE 512
 #endif
 
 /*
-    The FLASH page base address is used to indicate the start address of using this flash.
+    The block count of the FLASH, calculated by total FLASH size and block size.
 */
-#ifndef SPI_FLASH_PAGE_BASE_ADDRESS
-#    define SPI_FLASH_PAGE_BASE_ADDRESS (SPI_FLASH_SECTOR_SIZE * SPI_FLASH_SECTOR_START_COUNT)
+#define EXTERNAL_FLASH_BLOCK_COUNT (EXTERNAL_FLASH_SIZE / EXTERNAL_FLASH_BLOCK_SIZE)
+
+/*
+    The sector count of the FLASH, calculated by total FLASH size and sector size.
+*/
+#define EXTERNAL_FLASH_SECTOR_COUNT (EXTERNAL_FLASH_SIZE / EXTERNAL_FLASH_SECTOR_SIZE)
+
+/*
+    The page count of the FLASH, calculated by total FLASH size and page size.
+*/
+#define EXTERNAL_FLASH_PAGE_COUNT ((EXTERNAL_FLASH_SIZE << 10) / EXTERNAL_FLASH_PAGE_SIZE)
+
+typedef int16_t flash_status_t;
+
+#define FLASH_STATUS_SUCCESS (0)
+#define FLASH_STATUS_ERROR (-1)
+#define FLASH_STATUS_TIMEOUT (-2)
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-typedef enum { FLASH_BUSY = 1, FLASH_ERROR_PG, FLASH_ERROR_WRP, FLASH_ERROR_OPT, FLASH_COMPLETE, FLASH_TIMEOUT, FLASH_BAD_ADDRESS } FLASH_Status;
+#include <stdint.h>
 
-FLASH_Status SPI_FLASH_Erase(void);
-FLASH_Status SPI_FLASH_ProgramHalfWord(uint32_t Address, uint16_t Data);
-int16_t SPI_FLASH_ReadBlock(uint8_t *Buffer, const uint8_t *Address, size_t Length);
+flash_status_t flash_erase_chip(void);
 
-bool spi_eeprom_start(void);
+flash_status_t flash_erase_block(const void *addr);
+
+flash_status_t flash_erase_sector(const void *addr);
+
+flash_status_t flash_read_block(uint8_t *buf, const void *addr, size_t len);
+
+flash_status_t flash_write_block(const uint8_t *buf, void *addr, size_t len);
 
 #ifdef __cplusplus
 }

@@ -224,7 +224,7 @@ OSAL_IRQ_HANDLER(WB32_RTCAlarm_IRQ_VECTOR) {
   if (flags & RTC_CRL_SECF)
     RTCD1.callback(&RTCD1, RTC_EVENT_SECOND);
 
-  if (flags & RTC_CRL_ALRF)
+  // if (flags & RTC_CRL_ALRF) 进入alarm中断时默认触发alarm
     RTCD1.callback(&RTCD1, RTC_EVENT_ALARM);
 
   if (flags & RTC_CRL_OWF)
@@ -284,11 +284,11 @@ void rtc_lld_set_prescaler(bool rtc_mod) {
 
   rtc_acquire_access();
   if (rtc_mod != true) {
-    RTC->PRLH = (uint16_t)((WB32_RTCCLK - 1) >> 16) & 0x000F;
-    RTC->PRLL = (uint16_t)(((WB32_RTCCLK - 1))      & 0xFFFF);
+    RTC->PRLH = (uint16_t)(((WB32_RTCCLK / 10) - 1) >> 16) & 0x000F;
+    RTC->PRLL = (uint16_t)((((WB32_RTCCLK / 10) - 1))      & 0xFFFF);
   } else {
-    RTC->PRLH = (uint16_t)((WB32_RTCLPCLK - 1) >> 16) & 0x000F;
-    RTC->PRLL = (uint16_t)(((WB32_RTCLPCLK - 1))      & 0xFFFF);
+    RTC->PRLH = (uint16_t)(((WB32_RTCLPCLK / 10) - 1) >> 16) & 0x000F;
+    RTC->PRLL = (uint16_t)((((WB32_RTCLPCLK / 10) - 1))      & 0xFFFF);
   }
   rtc_release_access();
 

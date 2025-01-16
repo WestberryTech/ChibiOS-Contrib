@@ -284,11 +284,11 @@ void rtc_lld_set_prescaler(bool rtc_mod) {
 
   rtc_acquire_access();
   if (rtc_mod != true) {
-    RTC->PRLH = (uint16_t)(((WB32_RTCCLK / 10) - 1) >> 16) & 0x000F;
-    RTC->PRLL = (uint16_t)((((WB32_RTCCLK / 10) - 1))      & 0xFFFF);
+    RTC->PRLH = (uint16_t)(((WB32_RTCCLK / 100) - 1) >> 16) & 0x000F;
+    RTC->PRLL = (uint16_t)((((WB32_RTCCLK / 100) - 1))      & 0xFFFF);
   } else {
-    RTC->PRLH = (uint16_t)(((WB32_RTCLPCLK / 10) - 1) >> 16) & 0x000F;
-    RTC->PRLL = (uint16_t)((((WB32_RTCLPCLK / 10) - 1))      & 0xFFFF);
+    RTC->PRLH = (uint16_t)(((WB32_RTCLPCLK / 100) - 1) >> 16) & 0x000F;
+    RTC->PRLL = (uint16_t)((((WB32_RTCLPCLK / 100) - 1))      & 0xFFFF);
   }
   rtc_release_access();
 
